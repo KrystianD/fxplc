@@ -19,6 +19,14 @@ CL = b'\x0C'  # Clear
 CR = b'\x0D'  # Carrier Return
 NAK = b'\x15'  # Not Acknowledge
 
+
+class Commands(enum.IntEnum):
+    BYTE_READ = 0
+    BYTE_WRITE = 1
+    FORCE_ON = 7
+    FORCE_OFF = 8
+
+
 registers_map_bit_images = {
     "S": 0x0000,
     "X": 0x0080,
@@ -93,7 +101,7 @@ class FXPLCClient:
         top_address = registers_map_bits[register.type.value]
         addr = top_address + register.num
 
-        await self._send_command(7 if value else 8, struct.pack("<H", addr))
+        await self._send_command(Commands.FORCE_ON if value else Commands.FORCE_OFF, struct.pack("<H", addr))
 
     async def read_counter(self, register: Union[RegisterDef, str]) -> int:
         if not isinstance(register, RegisterDef):
@@ -107,12 +115,12 @@ class FXPLCClient:
 
     async def read_bytes(self, addr: int, count: int = 1) -> bytes:
         req = struct.pack(">HB", addr, count)
-        resp = await self._send_command(0, req)
+        resp = await self._send_command(Commands.BYTE_READ, req)
         return resp
 
     async def write_bytes(self, addr: int, values: bytes):
         req = struct.pack(">HB", addr, len(values)) + values
-        return await self._send_command(1, req)
+        return await self._send_command(Commands.BYTE_WRITE, req)
 
     async def write_data(self, register: Union[RegisterDef, str], value: int):
         if not isinstance(register, RegisterDef):
