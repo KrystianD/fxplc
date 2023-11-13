@@ -1,9 +1,10 @@
+import argparse
 import asyncio
 import logging
-import argparse
 
-from fxplc import FXPLC, RegisterDef, RegisterType, NoResponseError, ResponseMalformedError, NotSupportedCommandError
-from transports.TransportSerial import TransportSerial
+from fxplc.client.FXPLCClient import FXPLCClient, RegisterDef, RegisterType
+from fxplc.client.errors import NoResponseError, NotSupportedCommandError, ResponseMalformedError
+from fxplc.transports.TransportSerial import TransportSerial
 
 
 async def main():
@@ -42,9 +43,10 @@ async def main():
 
     args = argparser.parse_args()
 
-    logging.basicConfig(level=logging.DEBUG if args.debug else logging.INFO, format="[%(asctime)s] [%(name)s] %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
+    logging.basicConfig(level=logging.DEBUG if args.debug else logging.INFO,
+                        format="[%(asctime)s] [%(name)s] %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 
-    fx = FXPLC(TransportSerial(args.path))
+    fx = FXPLCClient(TransportSerial(args.path))
 
     try:
         if args.cmd == "read":
@@ -87,4 +89,5 @@ async def main():
         exit(1)
 
 
-asyncio.run(main())
+def main_cli():
+    asyncio.run(main())

@@ -4,22 +4,10 @@ import logging
 import struct
 from typing import Tuple, Union
 
-from transports.ITransport import ITransport
+from fxplc.client.errors import ResponseMalformedError, NoResponseError, NotSupportedCommandError
+from fxplc.transports.ITransport import ITransport
 
 logger = logging.getLogger("fxplc")
-
-
-class NotSupportedCommandError(Exception):
-    pass
-
-
-class NoResponseError(Exception):
-    pass
-
-
-class ResponseMalformedError(Exception):
-    pass
-
 
 STX = b"\x02"  # Start of text
 ETX = b'\x03'  # End of text
@@ -84,7 +72,7 @@ def calc_checksum(payload):
     return bytes(f"{sum(payload):02X}"[-2:].encode("ascii"))
 
 
-class FXPLC:
+class FXPLCClient:
     def __init__(self, transport: ITransport):
         self._transport = transport
 
@@ -186,10 +174,7 @@ class FXPLC:
 
 
 __all__ = [
-    "NotSupportedCommandError",
-    "NoResponseError",
-    "ResponseMalformedError",
     "RegisterType",
     "RegisterDef",
-    "FXPLC",
+    "FXPLCClient",
 ]

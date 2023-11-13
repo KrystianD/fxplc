@@ -16,27 +16,34 @@ Python library and CLI utility allow to read and write PLC registers like `X0`, 
 ### Library
 
 ```python
+import asyncio
 from contextlib import closing
-from fxplc import FXPLC
+from fxplc.client.FXPLCClient import FXPLCClient
+from fxplc.transports.TransportSerial import TransportSerial
 
-with closing(FXPLC("/dev/ttyUSB0")) as fx:
-    s0_state = fx.read_bit("S0")
-    t0_state = fx.read_bit("T0")
-    t0_value = fx.read_counter("T0")
-    
-    fx.write_bit("S1", True)
+
+async def main():
+    with closing(FXPLCClient(TransportSerial("/dev/ttyUSB0"))) as fx:
+        s0_state = await fx.read_bit("S0")
+        t0_state = await fx.read_bit("T0")
+        t0_value = await fx.read_counter("T0")
+
+        await fx.write_bit("S1", True)
+
+
+asyncio.run(main())
 ```
 
 ### CLI
 
 ```shell
-python cli.py -p dev/ttyUSB0 read_bit S0
-python cli.py -p dev/ttyUSB0 read_bit T0
-python cli.py -p dev/ttyUSB0 read_counter T0
+fxplc -p dev/ttyUSB0 read_bit S0
+fxplc -p dev/ttyUSB0 read_bit T0
+fxplc -p dev/ttyUSB0 read_counter T0
 
-python cli.py -p dev/ttyUSB0 write_bit S1 on
+fxplc -p dev/ttyUSB0 write_bit S1 on
 
-python cli.py -p dev/ttyUSB0 read S0 T0
+fxplc -p dev/ttyUSB0 read S0 T0
 # S0 = off
 # T0 = on, counter: 30
 ```
@@ -44,5 +51,6 @@ python cli.py -p dev/ttyUSB0 read S0 T0
 ### Compatibility
 
 Tested on:
+
 - FX1N-06MR (chinese clone)
 - FX1N-20MR (chinese clone)
