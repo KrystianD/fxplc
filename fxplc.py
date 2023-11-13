@@ -4,7 +4,7 @@ import logging
 import struct
 from typing import Tuple, Union
 
-import serial
+from transports.ITransport import ITransport
 
 logger = logging.getLogger("fxplc")
 
@@ -85,60 +85,55 @@ def calc_checksum(payload):
 
 
 class FXPLC:
-    def __init__(self, port: str):
-        self.serial = serial.Serial(port=port,
-                                    timeout=1,
-                                    baudrate=38400,
-                                    bytesize=serial.SEVENBITS,
-                                    parity=serial.PARITY_EVEN,
-                                    stopbits=serial.STOPBITS_ONE)
+    def __init__(self, transport: ITransport):
+        self._transport = transport
 
     def close(self):
-        self.serial.close()
+        self._transport.close()
 
-    def read_bit(self, register: Union[RegisterDef, str]) -> bool:
+    async def read_bit(self, register: Union[RegisterDef, str]) -> bool:
         if not isinstance(register, RegisterDef):
             register = RegisterDef.parse(register)
         addr, bit = register.get_bit_image_address()
 
-        resp = self.read_bytes(addr, 1)
+        resp = await self.read_bytes(addr, 1)
         return (resp[0] & (1 << bit)) != 0
 
-    def write_bit(self, register: Union[RegisterDef, str], value: bool):
+    async def write_bit(self, register: Union[RegisterDef, str], value: bool):
         if not isinstance(register, RegisterDef):
             register = RegisterDef.parse(register)
         top_address = registers_map_bits[register.type.value]
         addr = top_address + register.num
 
-        self._send_command(7 if value else 8, struct.pack("<H", addr))
+        await self._send_command(7 if value else 8, struct.pack("<H", addr))
 
-    def read_counter(self, register: Union[RegisterDef, str]) -> int:
+    async def read_counter(self, register: Union[RegisterDef, str]) -> int:
         if not isinstance(register, RegisterDef):
             register = RegisterDef.parse(register)
         addr = registers_map_counter[register.type.value] + register.num * 2
 
-        resp = self.read_bytes(addr, 2)
+        resp = await self.read_bytes(addr, 2)
 
         value = struct.unpack("<H", resp)[0]
         return value
 
-    def read_bytes(self, addr: int, count: int = 1) -> bytes:
+    async def read_bytes(self, addr: int, count: int = 1) -> bytes:
         req = struct.pack(">HB", addr, count)
-        resp = self._send_command(0, req)
+        resp = await self._send_command(0, req)
         return resp
 
-    def write_bytes(self, addr: int, values: bytes):
+    async def write_bytes(self, addr: int, values: bytes):
         req = struct.pack(">HB", addr, len(values)) + values
-        return self._send_command(1, req)
+        return await self._send_command(1, req)
 
-    def write_data(self, register: Union[RegisterDef, str], value: int):
+    async def write_data(self, register: Union[RegisterDef, str], value: int):
         if not isinstance(register, RegisterDef):
             register = RegisterDef.parse(register)
         addr = registers_map_counter[register.type.value] + register.num * 2
 
-        self.write_bytes(addr, struct.pack("H", value))
+        await self.write_bytes(addr, struct.pack("H", value))
 
-    def _send_command(self, cmd: int, data: bytes) -> bytes:
+    async def _send_command(self, cmd: int, data: bytes) -> bytes:
         cmd_hex = bytes([ord("0") + cmd])
         payload_hex = binascii.hexlify(data).upper()
         logger.debug("TX [cmd | payload]: " + cmd_hex.decode("ascii") + " | " + payload_hex.decode("ascii"))
@@ -146,24 +141,22 @@ class FXPLC:
 
         frame = STX + payload + ETX + calc_checksum(payload + ETX)
 
-        self.serial.flushOutput()
-        self.serial.flushInput()
-        self.serial.write(frame)
+        await self._transport.write(frame)
 
-        return self._read_response()
+        return await self._read_response()
 
-    def _read_response(self):
+    async def _read_response(self):
         def format_code(_code):
             return f"RX [code]: {binascii.hexlify(_code).decode('ascii')}"
 
         def format_code_data(_code, _data):
             return f"RX [code | payload]: {binascii.hexlify(_code).decode('ascii')} | {_data.decode('ascii')}"
 
-        code = self.serial.read(1)
+        code = await self._transport.read(1)
         if code == STX:
             data = b""
             while True:
-                d = self.serial.read(1)
+                d = await self._transport.read(1)
                 if len(d) == 0:
                     logger.error(f"Invalid response - {format_code_data(code, data)}")
                     raise ResponseMalformedError()
@@ -174,7 +167,7 @@ class FXPLC:
 
             logger.debug(format_code_data(code, data))
 
-            checksum = self.serial.read(2)
+            checksum = await self._transport.read(2)
             if len(checksum) != 2:
                 logger.error(f"Invalid response - {format_code_data(code, data)}")
                 raise ResponseMalformedError()
