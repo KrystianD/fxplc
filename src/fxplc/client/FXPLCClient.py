@@ -19,7 +19,7 @@ CL = b'\x0C'  # Clear
 CR = b'\x0D'  # Carrier Return
 NAK = b'\x15'  # Not Acknowledge
 
-registers_map = {
+registers_map_bit_images = {
     "S": 0x0000,
     "X": 0x0080,
     "Y": 0x00a0,
@@ -52,20 +52,20 @@ class RegisterType(enum.Enum):
 
 
 class RegisterDef:
-    def __init__(self, type: RegisterType, num: int):
-        self.type = type
+    def __init__(self, reg_type: RegisterType, num: int):
+        self.type = reg_type
         self.num = num
 
     def __str__(self):
         return f"{self.type.value}{self.num}"
 
     def get_bit_image_address(self) -> Tuple[int, int]:
-        top_address = registers_map[self.type.value]
+        top_address = registers_map_bit_images[self.type.value]
         return top_address + self.num // 8, self.num % 8
 
     @staticmethod
     def parse(definition: str) -> 'RegisterDef':
-        return RegisterDef(type=RegisterType(definition[0]), num=int(definition[1:]))
+        return RegisterDef(reg_type=RegisterType(definition[0]), num=int(definition[1:]))
 
 
 def calc_checksum(payload):
