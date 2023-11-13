@@ -42,6 +42,7 @@ registers_map = {
 
 registers_map_counter = {
     "T": 0x0800,
+    "D": 0x1000,
 }
 
 registers_map_bits = {
