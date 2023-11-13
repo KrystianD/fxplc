@@ -1,3 +1,4 @@
+import asyncio
 import binascii
 import enum
 import logging
@@ -88,6 +89,7 @@ def calc_checksum(payload: bytes) -> bytes:
 class FXPLCClient:
     def __init__(self, transport: ITransport):
         self._transport = transport
+        self._lock = asyncio.Lock()
 
     def close(self) -> None:
         self._transport.close()
@@ -142,9 +144,9 @@ class FXPLCClient:
 
         frame = STX + payload + ETX + calc_checksum(payload + ETX)
 
-        await self._transport.write(frame)
-
-        return await self._read_response()
+        async with self._lock:
+            await self._transport.write(frame)
+            return await self._read_response()
 
     async def _read_response(self) -> bytes:
         def format_code(_code: bytes) -> str:
