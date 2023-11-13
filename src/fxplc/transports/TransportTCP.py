@@ -9,21 +9,21 @@ class NotConnectedError(Exception):
 
 
 class TransportTCP(ITransport):
-    def __init__(self, host: str, port: int):
+    def __init__(self, host: str, port: int) -> None:
         self._host = host
         self._port = port
         self._reader: StreamReader | None = None
         self._writer: StreamWriter | None = None
 
-    async def connect(self):
+    async def connect(self) -> None:
         self._reader, self._writer = await asyncio.open_connection(self._host, self._port)
 
-    def close(self):
+    def close(self) -> None:
         if self._reader is None or self._writer is None:
             return
         self._writer.close()
 
-    async def write(self, data: bytes):
+    async def write(self, data: bytes) -> None:
         if self._reader is None or self._writer is None:
             raise NotConnectedError()
 

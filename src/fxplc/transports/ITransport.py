@@ -3,7 +3,7 @@ from abc import abstractmethod
 
 class ITransport:
     @abstractmethod
-    async def write(self, data: bytes):
+    async def write(self, data: bytes) -> None:
         pass
 
     @abstractmethod
@@ -11,5 +11,5 @@ class ITransport:
         pass
 
     @abstractmethod
-    def close(self):
+    def close(self) -> None:
         pass

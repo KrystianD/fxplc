@@ -60,11 +60,11 @@ class RegisterType(enum.Enum):
 
 
 class RegisterDef:
-    def __init__(self, reg_type: RegisterType, num: int):
+    def __init__(self, reg_type: RegisterType, num: int) -> None:
         self.type = reg_type
         self.num = num
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.type.value}{self.num}"
 
     def get_bit_image_address(self) -> Tuple[int, int]:
@@ -81,7 +81,7 @@ class RegisterDef:
         return RegisterDef(reg_type=RegisterType(definition[0]), num=int(definition[1:]))
 
 
-def calc_checksum(payload):
+def calc_checksum(payload: bytes) -> bytes:
     return bytes(f"{sum(payload):02X}"[-2:].encode("ascii"))
 
 
@@ -89,7 +89,7 @@ class FXPLCClient:
     def __init__(self, transport: ITransport):
         self._transport = transport
 
-    def close(self):
+    def close(self) -> None:
         self._transport.close()
 
     async def read_bit(self, register: Union[RegisterDef, str]) -> bool:
@@ -100,7 +100,7 @@ class FXPLCClient:
         resp = await self.read_bytes(addr, 1)
         return (resp[0] & (1 << bit)) != 0
 
-    async def write_bit(self, register: Union[RegisterDef, str], value: bool):
+    async def write_bit(self, register: Union[RegisterDef, str], value: bool) -> None:
         if not isinstance(register, RegisterDef):
             register = RegisterDef.parse(register)
         top_address = registers_map_bits[register.type.value]
@@ -115,7 +115,7 @@ class FXPLCClient:
 
         resp = await self.read_bytes(addr, 2)
 
-        value = struct.unpack("<H", resp)[0]
+        value: int = struct.unpack("<H", resp)[0]
         return value
 
     async def read_bytes(self, addr: int, count: int = 1) -> bytes:
@@ -123,11 +123,11 @@ class FXPLCClient:
         resp = await self._send_command(Commands.BYTE_READ, req)
         return resp
 
-    async def write_bytes(self, addr: int, values: bytes):
+    async def write_bytes(self, addr: int, values: bytes) -> None:
         req = struct.pack(">HB", addr, len(values)) + values
-        return await self._send_command(Commands.BYTE_WRITE, req)
+        await self._send_command(Commands.BYTE_WRITE, req)
 
-    async def write_data(self, register: Union[RegisterDef, str], value: int):
+    async def write_data(self, register: Union[RegisterDef, str], value: int) -> None:
         if not isinstance(register, RegisterDef):
             register = RegisterDef.parse(register)
         addr = registers_map_counter[register.type.value] + register.num * 2
@@ -146,11 +146,11 @@ class FXPLCClient:
 
         return await self._read_response()
 
-    async def _read_response(self):
-        def format_code(_code):
+    async def _read_response(self) -> bytes:
+        def format_code(_code: bytes) -> str:
             return f"RX [code]: {binascii.hexlify(_code).decode('ascii')}"
 
-        def format_code_data(_code, _data):
+        def format_code_data(_code: bytes, _data: bytes) -> str:
             return f"RX [code | payload]: {binascii.hexlify(_code).decode('ascii')} | {_data.decode('ascii')}"
 
         code = await self._transport.read(1)
@@ -182,6 +182,7 @@ class FXPLCClient:
             raise NotSupportedCommandError()
         elif code == ACK:
             logger.debug(f"{format_code(code)} (ACK)")
+            return b""
         else:
             raise NoResponseError()
 

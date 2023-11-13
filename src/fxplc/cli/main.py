@@ -7,7 +7,7 @@ from fxplc.client.errors import NoResponseError, NotSupportedCommandError, Respo
 from fxplc.transports.TransportSerial import TransportSerial
 
 
-async def main():
+async def main() -> None:
     argparser = argparse.ArgumentParser()
     argparser.add_argument('-d', '--debug', action='store_true')
     argparser.add_argument('-p', '--path', type=str, metavar="PATH", required=True)
@@ -61,20 +61,20 @@ async def main():
                     print(f"{reg} = {bit_str}")
 
         if args.cmd == "read_bit":
-            d = await fx.read_bit(args.register)
-            print(d)
+            resp_bit = await fx.read_bit(args.register)
+            print(resp_bit)
 
         if args.cmd == "write_bit":
             on = args.value in ("1", "on", "yes", "true")
             await fx.write_bit(args.register, on)
 
         if args.cmd == "read_bytes":
-            d = await fx.read_bytes(args.register, args.count)
-            print(d)
+            resp_data = await fx.read_bytes(args.register, args.count)
+            print(resp_data)
 
         if args.cmd == "read_counter":
-            d = await fx.read_counter(args.register)
-            print(d)
+            resp_value = await fx.read_counter(args.register)
+            print(resp_value)
 
         if args.cmd == "write":
             await fx.write_data(args.register, args.value)
@@ -89,5 +89,5 @@ async def main():
         exit(1)
 
 
-def main_cli():
+def main_cli() -> None:
     asyncio.run(main())
