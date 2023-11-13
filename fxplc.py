@@ -85,8 +85,12 @@ def calc_checksum(payload):
 
 class FXPLC:
     def __init__(self, port: str):
-        self.serial = serial.Serial(port=port, timeout=1,
-                                    baudrate=9600, bytesize=serial.SEVENBITS, parity=serial.PARITY_EVEN, stopbits=serial.STOPBITS_ONE)
+        self.serial = serial.Serial(port=port,
+                                    timeout=1,
+                                    baudrate=38400,
+                                    bytesize=serial.SEVENBITS,
+                                    parity=serial.PARITY_EVEN,
+                                    stopbits=serial.STOPBITS_ONE)
 
     def close(self):
         self.serial.close()
