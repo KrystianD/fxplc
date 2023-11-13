@@ -69,7 +69,12 @@ class RegisterDef:
 
     def get_bit_image_address(self) -> Tuple[int, int]:
         top_address = registers_map_bit_images[self.type.value]
-        return top_address + self.num // 8, self.num % 8
+        if self.type in (RegisterType.Input, RegisterType.Output):
+            byte_addr, bit = top_address + self.num // 10, self.num % 10
+        else:
+            byte_addr, bit = top_address + self.num // 8, self.num % 8
+        assert bit < 8
+        return byte_addr, bit
 
     @staticmethod
     def parse(definition: str) -> 'RegisterDef':
