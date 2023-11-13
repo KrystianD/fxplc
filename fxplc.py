@@ -129,7 +129,14 @@ class FXPLC:
 
     def write_bytes(self, addr: int, values: bytes):
         req = struct.pack(">HB", addr, len(values)) + values
-        self._send_command(1, req)
+        return self._send_command(1, req)
+
+    def write_data(self, register: Union[RegisterDef, str], value: int):
+        if not isinstance(register, RegisterDef):
+            register = RegisterDef.parse(register)
+        addr = registers_map_counter[register.type.value] + register.num * 2
+
+        self.write_bytes(addr, struct.pack("H", value))
 
     def _send_command(self, cmd: int, data: bytes) -> bytes:
         cmd_hex = bytes([ord("0") + cmd])

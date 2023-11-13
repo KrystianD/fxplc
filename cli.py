@@ -33,6 +33,11 @@ def main():
     sp.add_argument("register")
     sp.add_argument("value", type=str, choices=["1", "0", "on", "off", "yes", "no", "true", "false"])
 
+    sp = op_sp.add_parser('write')
+    sp.set_defaults(cmd="write")
+    sp.add_argument("register")
+    sp.add_argument("value", type=int)
+
     args = argparser.parse_args()
 
     logging.basicConfig(level=logging.DEBUG if args.debug else logging.INFO, format="[%(asctime)s] [%(name)s] %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
@@ -66,6 +71,9 @@ def main():
         if args.cmd == "read_counter":
             d = fx.read_counter(args.register)
             print(d)
+
+        if args.cmd == "write":
+            fx.write_data(args.register, args.value)
     except NotSupportedCommandError:
         print("[ERROR] Command not supported")
         exit(1)
