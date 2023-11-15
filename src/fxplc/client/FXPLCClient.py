@@ -39,6 +39,7 @@ registers_map_bit_images = {
 
 registers_map_data = {
     "T": 0x0800,
+    "C": 0x0a00,
     "D": 0x1000,
 }
 
@@ -58,6 +59,7 @@ class RegisterType(enum.Enum):
     Timer = "T"
     Memory = "M"
     Data = "D"
+    Counter = "C"
 
 
 class RegisterDef:
