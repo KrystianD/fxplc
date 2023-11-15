@@ -100,6 +100,8 @@ class FXPLCClient:
         addr, bit = register.get_bit_image_address()
 
         resp = await self.read_bytes(addr, 1)
+        if len(resp) != 1:
+            raise ResponseMalformedError()
         return (resp[0] & (1 << bit)) != 0
 
     async def write_bit(self, register: Union[RegisterDef, str], value: bool) -> None:
@@ -116,6 +118,8 @@ class FXPLCClient:
         addr = registers_map_counter[register.type.value] + register.num * 2
 
         resp = await self.read_bytes(addr, 2)
+        if len(resp) != 2:
+            raise ResponseMalformedError()
 
         value: int = struct.unpack("<H", resp)[0]
         return value
