@@ -152,7 +152,10 @@ class FXPLCClient:
 
         async with self._lock:
             await self._transport.write(frame)
-            return await self._read_response()
+            try:
+                return await self._read_response()
+            except TimeoutError:
+                raise NoResponseError()
 
     async def _read_response(self) -> bytes:
         def format_code(_code: bytes) -> str:
