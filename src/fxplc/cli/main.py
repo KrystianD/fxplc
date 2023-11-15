@@ -97,6 +97,8 @@ async def main() -> None:
     except ResponseMalformedError:
         print("[ERROR] Response malformed")
         exit(1)
+    finally:
+        fx.close()
 
 
 def main_cli() -> None:
