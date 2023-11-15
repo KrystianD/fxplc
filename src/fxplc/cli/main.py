@@ -29,8 +29,8 @@ async def main() -> None:
     sp.add_argument("register")
     sp.add_argument("count", type=int, default=1, nargs='?')
 
-    sp = op_sp.add_parser('read_counter')
-    sp.set_defaults(cmd="read_counter")
+    sp = op_sp.add_parser('read_int')
+    sp.set_defaults(cmd="read_int")
     sp.add_argument("register")
 
     sp = op_sp.add_parser('write_bit')
@@ -38,8 +38,8 @@ async def main() -> None:
     sp.add_argument("register")
     sp.add_argument("value", type=str, choices=["1", "0", "on", "off", "yes", "no", "true", "false"])
 
-    sp = op_sp.add_parser('write')
-    sp.set_defaults(cmd="write")
+    sp = op_sp.add_parser('write_int')
+    sp.set_defaults(cmd="write_int")
     sp.add_argument("register")
     sp.add_argument("value", type=int)
 
@@ -65,7 +65,7 @@ async def main() -> None:
                 bit = await fx.read_bit(r)
                 bit_str = "on" if bit else "off"
                 if reg.type == RegisterType.Timer:
-                    cnt = fx.read_counter(r)
+                    cnt = fx.read_int(r)
                     print(f"{reg} = {bit_str}, counter: {cnt}")
                 else:
                     print(f"{reg} = {bit_str}")
@@ -82,12 +82,12 @@ async def main() -> None:
             resp_data = await fx.read_bytes(args.register, args.count)
             print(resp_data)
 
-        if args.cmd == "read_counter":
-            resp_value = await fx.read_counter(args.register)
+        if args.cmd == "read_int":
+            resp_value = await fx.read_int(args.register)
             print(resp_value)
 
-        if args.cmd == "write":
-            await fx.write_data(args.register, args.value)
+        if args.cmd == "write_int":
+            await fx.write_int(args.register, args.value)
     except NotSupportedCommandError:
         print("[ERROR] Command not supported")
         exit(1)

@@ -114,7 +114,7 @@ class FXPLCClient:
 
         await self._send_command(Commands.FORCE_ON if value else Commands.FORCE_OFF, struct.pack("<H", addr))
 
-    async def read_counter(self, register: Union[RegisterDef, str]) -> int:
+    async def read_int(self, register: Union[RegisterDef, str]) -> int:
         if not isinstance(register, RegisterDef):
             register = RegisterDef.parse(register)
         addr = registers_map_data[register.type.value] + register.num * 2
@@ -135,7 +135,7 @@ class FXPLCClient:
         req = struct.pack(">HB", addr, len(values)) + values
         await self._send_command(Commands.BYTE_WRITE, req)
 
-    async def write_data(self, register: Union[RegisterDef, str], value: int) -> None:
+    async def write_int(self, register: Union[RegisterDef, str], value: int) -> None:
         if not isinstance(register, RegisterDef):
             register = RegisterDef.parse(register)
         addr = registers_map_data[register.type.value] + register.num * 2
