@@ -1,2 +1,2 @@
 #!/bin/bash
-mypy -p fxplc.cli -p fxplc.client -p fxplc.transports
+mypy -p fxplc.cli -p fxplc.client -p fxplc.http_server -p fxplc.transports
