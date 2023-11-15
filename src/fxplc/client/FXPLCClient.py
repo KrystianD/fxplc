@@ -37,7 +37,7 @@ registers_map_bit_images = {
     "D": 0x1000,
 }
 
-registers_map_counter = {
+registers_map_data = {
     "T": 0x0800,
     "D": 0x1000,
 }
@@ -115,7 +115,7 @@ class FXPLCClient:
     async def read_counter(self, register: Union[RegisterDef, str]) -> int:
         if not isinstance(register, RegisterDef):
             register = RegisterDef.parse(register)
-        addr = registers_map_counter[register.type.value] + register.num * 2
+        addr = registers_map_data[register.type.value] + register.num * 2
 
         resp = await self.read_bytes(addr, 2)
         if len(resp) != 2:
@@ -136,7 +136,7 @@ class FXPLCClient:
     async def write_data(self, register: Union[RegisterDef, str], value: int) -> None:
         if not isinstance(register, RegisterDef):
             register = RegisterDef.parse(register)
-        addr = registers_map_counter[register.type.value] + register.num * 2
+        addr = registers_map_data[register.type.value] + register.num * 2
 
         await self.write_bytes(addr, struct.pack("H", value))
 
