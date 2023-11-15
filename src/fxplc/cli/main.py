@@ -4,7 +4,9 @@ import logging
 
 from fxplc.client.FXPLCClient import FXPLCClient, RegisterDef, RegisterType
 from fxplc.client.errors import NoResponseError, NotSupportedCommandError, ResponseMalformedError
+from fxplc.transports.ITransport import ITransport
 from fxplc.transports.TransportSerial import TransportSerial
+from fxplc.transports.TransportTCP import TransportTCP
 
 
 async def main() -> None:
@@ -46,7 +48,15 @@ async def main() -> None:
     logging.basicConfig(level=logging.DEBUG if args.debug else logging.INFO,
                         format="[%(asctime)s] [%(name)s] %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 
-    fx = FXPLCClient(TransportSerial(args.path))
+    transport: ITransport
+    if args.path.startswith("tcp:"):
+        _, host, port = args.path.split(":")
+        tcp_transport = TransportTCP(host, int(port))
+        await tcp_transport.connect()
+        transport = tcp_transport
+    else:
+        transport = TransportSerial(args.path)
+    fx = FXPLCClient(transport)
 
     try:
         if args.cmd == "read":

@@ -20,10 +20,16 @@ import asyncio
 from contextlib import closing
 from fxplc.client.FXPLCClient import FXPLCClient
 from fxplc.transports.TransportSerial import TransportSerial
+from fxplc.transports.TransportTCP import TransportTCP
 
 
 async def main():
-    with closing(FXPLCClient(TransportSerial("/dev/ttyUSB0"))) as fx:
+    transport = TransportSerial("/dev/ttyUSB0")
+    # or, for TCP transport
+    # transport = TransportTCP("192.168.1.100", 8888)
+    # await transport.connect()
+    
+    with closing(FXPLCClient(transport)) as fx:
         s0_state = await fx.read_bit("S0")
         t0_state = await fx.read_bit("T0")
         t0_value = await fx.read_counter("T0")
@@ -40,6 +46,7 @@ asyncio.run(main())
 fxplc -p dev/ttyUSB0 read_bit S0
 fxplc -p dev/ttyUSB0 read_bit T0
 fxplc -p dev/ttyUSB0 read_counter T0
+fxplc -p tcp:192.168.1.100:8888 read_int T0
 
 fxplc -p dev/ttyUSB0 write_bit S1 on
 
