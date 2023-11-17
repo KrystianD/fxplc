@@ -11,6 +11,7 @@ def main() -> None:
     argparser.add_argument("--path", type=str, required=True)
     argparser.add_argument("--variables", type=str, required=False)
     argparser.add_argument('--debug', action='store_true')
+    argparser.add_argument('--base-href', type=str, default="/")
 
     args = argparser.parse_args()
 

@@ -253,6 +253,6 @@ def run_server(args: Any) -> None:
         await ui_vars()
         ui.separator()
 
-    ui.run_with(app, mount_path="/", title="FXPLC server")
+    ui.run_with(app, mount_path=args.base_href, title="FXPLC server")
 
     uvicorn.run(app, host="0.0.0.0", port=8000, reload=False, access_log=False)
