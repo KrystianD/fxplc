@@ -1,10 +1,10 @@
 import functools
 import json
 import os.path
-from typing import Any, List
+from typing import Any, List, Optional
 
 import uvicorn
-from fastapi import HTTPException
+from fastapi import HTTPException, Body
 from nicegui import app
 from nicegui import ui
 from nicegui.functions.refreshable import refreshable
@@ -56,8 +56,17 @@ async def raw_get(register: str) -> Any:
 
 
 @app.put("/raw/{register}", response_class=PrettyJSONResponse)  # type: ignore
-async def raw_put(register: str, value: int | bool) -> Any:
-    return await perform_register_write(register, value)
+async def raw_put(register: str,
+                  value: Optional[int | bool] = None,
+                  value_body: Optional[int | bool] = Body(default=None)) -> Any:
+    if value is not None:
+        value_to_set = value
+    elif value_body is not None:
+        value_to_set = value_body
+    else:
+        raise HTTPException(status_code=400, detail="no value")
+
+    return await perform_register_write(register, value_to_set)
 
 
 @app.put("/raw/{register}/enable", response_class=PrettyJSONResponse)  # type: ignore
@@ -111,10 +120,18 @@ async def variables_name_get(name: str) -> Any:
 
 
 @app.put("/variable/{name}", response_class=PrettyJSONResponse)  # type: ignore
-async def variables_name_put(name: str, value: int | bool) -> Any:
+async def variables_name_put(name: str,
+                             value: Optional[int | bool] = None,
+                             value_body: Optional[int | bool] = Body(default=None)) -> Any:
     var_def = find_variable_def(name)
 
-    value_set = await perform_register_write(var_def.register, value)
+    if value is not None:
+        value_to_set = value
+    elif value_body is not None:
+        value_to_set = value_body
+    else:
+        raise HTTPException(status_code=400, detail="no value")
+    value_set = await perform_register_write(var_def.register, value_to_set)
 
     return {
         "name": var_def.name,
@@ -240,7 +257,8 @@ def run_server(args: Any) -> None:
 
                     with ui.row() as r:
                         r.style("align-items: center;")
-                        ui_value_el = ui.number(label=var_def.name, value=int(val), on_change=None).style("width: 300px")
+                        ui_value_el = ui.number(label=var_def.name, value=int(val), on_change=None) \
+                            .style("width: 300px")
                         ui.button(text="Set", on_click=functools.partial(fn2, ui_value_el, var_def))
 
         with ui.row():
