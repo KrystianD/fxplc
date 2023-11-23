@@ -61,3 +61,5 @@ Tested on:
 
 - FX1N-06MR (chinese clone)
 - FX1N-20MR (chinese clone)
+- FX3U-24MR (chinese clone)
+- FX3U-48MR (chinese clone)
