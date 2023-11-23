@@ -43,14 +43,14 @@ asyncio.run(main())
 ### CLI
 
 ```shell
-fxplc -p dev/ttyUSB0 read_bit S0
-fxplc -p dev/ttyUSB0 read_bit T0
-fxplc -p dev/ttyUSB0 read_int T0
+fxplc -p /dev/ttyUSB0 read_bit S0
+fxplc -p /dev/ttyUSB0 read_bit T0
+fxplc -p /dev/ttyUSB0 read_int T0
 fxplc -p tcp:192.168.1.100:8888 read_int T0
 
-fxplc -p dev/ttyUSB0 write_bit S1 on
+fxplc -p /dev/ttyUSB0 write_bit S1 on
 
-fxplc -p dev/ttyUSB0 read S0 T0
+fxplc -p /dev/ttyUSB0 read S0 T0
 # S0 = off
 # T0 = on, counter: 30
 ```
