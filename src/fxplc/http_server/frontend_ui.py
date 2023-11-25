@@ -10,17 +10,16 @@ from fxplc.http_server.processor import perform_register_read, perform_register_
 from fxplc.http_server.mytypes import VariableDefinition
 
 
+def set_running(running: bool) -> None:
+    if running:
+        resume_serial()
+    else:
+        pause_serial()
+
+
 def register_ui(variables: List[VariableDefinition]) -> None:
     @ui.page('/')  # type: ignore
     async def ui_index() -> None:
-        def ch(e: Any) -> None:
-            set_running = e.value
-
-            if set_running:
-                resume_serial()
-            else:
-                pause_serial()
-
         notification_timeout = 1000
 
         @refreshable  # type: ignore
@@ -77,7 +76,7 @@ def register_ui(variables: List[VariableDefinition]) -> None:
         with ui.row():
             ui.switch(text="Running",
                       value=is_running(),
-                      on_change=ch).props("color=red")
+                      on_change=lambda x: set_running(x.value)).props("color=red")
             ui.button(text="Refresh variables", on_click=ui_vars.refresh)
         ui.separator()
 
