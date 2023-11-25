@@ -17,6 +17,10 @@ def set_running(running: bool) -> None:
         pause_serial()
 
 
+def set_rest_enabled(runtime_settings: RuntimeSettings, enabled: bool) -> None:
+    runtime_settings.rest_enabled = enabled
+
+
 def register_ui(runtime_settings: RuntimeSettings) -> None:
     @ui.page('/')  # type: ignore
     async def ui_index() -> None:
@@ -78,6 +82,9 @@ def register_ui(runtime_settings: RuntimeSettings) -> None:
                       value=is_running(),
                       on_change=lambda x: set_running(x.value)).props("color=red")
             ui.button(text="Refresh variables", on_click=ui_vars.refresh)
+            ui.switch(text="REST enabled",
+                      value=runtime_settings.rest_enabled,
+                      on_change=lambda x: set_rest_enabled(runtime_settings, x.value)).props("color=green")
         ui.separator()
 
         await ui_vars()

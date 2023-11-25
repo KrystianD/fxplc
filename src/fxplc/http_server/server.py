@@ -28,12 +28,18 @@ def get_runtime_settings() -> RuntimeSettings:
 
 @app.put("/pause", response_class=PrettyJSONResponse)  # type: ignore
 async def pause_put():
+    if not get_runtime_settings().rest_enabled:
+        raise HTTPException(status_code=400, detail="REST disabled")
+
     pause_serial()
     return "OK"
 
 
 @app.put("/resume", response_class=PrettyJSONResponse)  # type: ignore
 async def resume_put():
+    if not get_runtime_settings().rest_enabled:
+        raise HTTPException(status_code=400, detail="REST disabled")
+
     resume_serial()
     return "OK"
 
@@ -47,6 +53,9 @@ async def raw_get(register: str) -> Any:
 async def raw_put(register: str,
                   value: Optional[int | bool] = None,
                   value_body: Optional[int | bool] = Body(default=None)) -> Any:
+    if not get_runtime_settings().rest_enabled:
+        raise HTTPException(status_code=400, detail="REST disabled")
+
     if value is not None:
         value_to_set = value
     elif value_body is not None:
@@ -59,16 +68,25 @@ async def raw_put(register: str,
 
 @app.put("/raw/{register}/enable", response_class=PrettyJSONResponse)  # type: ignore
 async def raw_enable_put(register: str) -> Any:
+    if not get_runtime_settings().rest_enabled:
+        raise HTTPException(status_code=400, detail="REST disabled")
+
     return await perform_register_write_bit(register, True)
 
 
 @app.put("/raw/{register}/disable", response_class=PrettyJSONResponse)  # type: ignore
 async def raw_disable_put(register: str) -> Any:
+    if not get_runtime_settings().rest_enabled:
+        raise HTTPException(status_code=400, detail="REST disabled")
+
     return await perform_register_write_bit(register, False)
 
 
 @app.put("/raw/{register}/toggle", response_class=PrettyJSONResponse)  # type: ignore
 async def raw_toggle_put(register: str) -> Any:
+    if not get_runtime_settings().rest_enabled:
+        raise HTTPException(status_code=400, detail="REST disabled")
+
     val = await perform_register_read_bit(register)
     return await perform_register_write_bit(register, not val)
 
@@ -111,6 +129,9 @@ async def variables_name_get(name: str) -> Any:
 async def variables_name_put(name: str,
                              value: Optional[int | bool] = None,
                              value_body: Optional[int | bool] = Body(default=None)) -> Any:
+    if not get_runtime_settings().rest_enabled:
+        raise HTTPException(status_code=400, detail="REST disabled")
+
     var_def = find_variable_def(name)
 
     if value is not None:
@@ -130,6 +151,9 @@ async def variables_name_put(name: str,
 
 @app.put("/variable/{name}/enable", response_class=PrettyJSONResponse)  # type: ignore
 async def variables_name_enable_put(name: str) -> Any:
+    if not get_runtime_settings().rest_enabled:
+        raise HTTPException(status_code=400, detail="REST disabled")
+
     var_def = find_variable_def(name)
 
     value_set = await perform_register_write_bit(var_def.register, True)
@@ -143,6 +167,9 @@ async def variables_name_enable_put(name: str) -> Any:
 
 @app.put("/variable/{name}/disable", response_class=PrettyJSONResponse)  # type: ignore
 async def variables_name_disable_put(name: str) -> Any:
+    if not get_runtime_settings().rest_enabled:
+        raise HTTPException(status_code=400, detail="REST disabled")
+
     var_def = find_variable_def(name)
 
     value_set = await perform_register_write_bit(var_def.register, False)
@@ -156,6 +183,9 @@ async def variables_name_disable_put(name: str) -> Any:
 
 @app.put("/variable/{name}/toggle", response_class=PrettyJSONResponse)  # type: ignore
 async def variables_name_toggle_put(name: str) -> Any:
+    if not get_runtime_settings().rest_enabled:
+        raise HTTPException(status_code=400, detail="REST disabled")
+
     var_def = find_variable_def(name)
 
     val = await perform_register_read_bit(var_def.register)

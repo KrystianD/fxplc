@@ -17,3 +17,4 @@ class VariablesFile:
 class RuntimeSettings:
     def __init__(self) -> None:
         self.variables: List[VariableDefinition] = []
+        self.rest_enabled = True
