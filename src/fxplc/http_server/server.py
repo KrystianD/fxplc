@@ -1,6 +1,6 @@
 import json
 import os.path
-from typing import Any, Optional
+from typing import Any, Optional, cast
 
 import uvicorn
 from fastapi import HTTPException, Body
@@ -11,7 +11,7 @@ from starlette.responses import Response
 from fxplc.http_server.frontend_ui import register_ui
 from fxplc.http_server.processor import perform_register_read, perform_register_write, resume_serial, \
     pause_serial, run_serial_task, perform_register_write_bit, perform_register_read_bit
-from fxplc.http_server.mytypes import VariableDefinition, VariablesFile
+from fxplc.http_server.mytypes import VariableDefinition, VariablesFile, RuntimeSettings
 from fxplc.http_server.utils import read_yaml_file
 
 
@@ -20,6 +20,10 @@ class PrettyJSONResponse(Response):
 
     def render(self, content: Any) -> bytes:
         return json.dumps(content, indent=2, sort_keys=True).encode("utf-8")
+
+
+def get_runtime_settings() -> RuntimeSettings:
+    return cast(RuntimeSettings, app.state.runtime_settings)
 
 
 @app.put("/pause", response_class=PrettyJSONResponse)  # type: ignore
@@ -70,7 +74,7 @@ async def raw_toggle_put(register: str) -> Any:
 
 
 def find_variable_def(name: str) -> VariableDefinition:
-    var_defs = [x for x in variables if x.name == name]
+    var_defs = [x for x in get_runtime_settings().variables if x.name == name]
     if len(var_defs) == 0:
         raise HTTPException(status_code=404, detail="variable not found")
     var_def = var_defs[0]
@@ -80,7 +84,7 @@ def find_variable_def(name: str) -> VariableDefinition:
 @app.get("/variable", response_class=PrettyJSONResponse)  # type: ignore
 async def variables_get() -> Any:
     resp = []
-    for var_def in variables:
+    for var_def in get_runtime_settings().variables:
         val = await perform_register_read(var_def.register)
         resp.append({
             "name": var_def.name,
@@ -165,7 +169,7 @@ async def variables_name_toggle_put(name: str) -> Any:
 
 
 def run_server(args: Any) -> None:
-    global variables
+    runtime_settings = RuntimeSettings()
 
     variables_path = args.variables
 
@@ -175,14 +179,16 @@ def run_server(args: Any) -> None:
             exit(1)
 
         variables_data = read_yaml_file(variables_path)
-        variables = VariablesFile(**variables_data).variables
+        runtime_settings.variables = VariablesFile(**variables_data).variables
+
+    app.state.runtime_settings = runtime_settings
 
     def on_startup() -> None:
         run_serial_task(args)
 
     app.on_startup(on_startup)
 
-    register_ui(variables)
+    register_ui(runtime_settings)
 
     ui.run_with(app, mount_path=args.base_href, title="FXPLC server")
 

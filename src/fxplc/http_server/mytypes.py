@@ -12,3 +12,8 @@ class VariableDefinition:
 @dataclass
 class VariablesFile:
     variables: List[VariableDefinition]
+
+
+class RuntimeSettings:
+    def __init__(self) -> None:
+        self.variables: List[VariableDefinition] = []

@@ -1,5 +1,5 @@
 import functools
-from typing import Any, List
+from typing import Any
 
 from nicegui import ui
 from nicegui.functions.refreshable import refreshable
@@ -7,7 +7,7 @@ from nicegui.functions.refreshable import refreshable
 from fxplc.client.FXPLCClient import RegisterDef, RegisterType
 from fxplc.http_server.processor import perform_register_read, perform_register_write, resume_serial, \
     pause_serial, is_running, perform_register_write_bit
-from fxplc.http_server.mytypes import VariableDefinition
+from fxplc.http_server.mytypes import VariableDefinition, RuntimeSettings
 
 
 def set_running(running: bool) -> None:
@@ -17,7 +17,7 @@ def set_running(running: bool) -> None:
         pause_serial()
 
 
-def register_ui(variables: List[VariableDefinition]) -> None:
+def register_ui(runtime_settings: RuntimeSettings) -> None:
     @ui.page('/')  # type: ignore
     async def ui_index() -> None:
         notification_timeout = 1000
@@ -26,14 +26,14 @@ def register_ui(variables: List[VariableDefinition]) -> None:
         async def ui_vars() -> None:
             def_to_val = {}
             try:
-                for var_def in variables:
+                for var_def in runtime_settings.variables:
                     val = await perform_register_read(var_def.register)
                     def_to_val[var_def.name] = val
             except:
                 ui.notify(f"Unable to update fetch data", type="negative", timeout=notification_timeout)
                 return
 
-            for var_def in variables:
+            for var_def in runtime_settings.variables:
                 val = def_to_val[var_def.name]
 
                 reg = RegisterDef.parse(var_def.register)
