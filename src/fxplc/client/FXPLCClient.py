@@ -44,11 +44,11 @@ registers_map_data = {
 }
 
 registers_map_bits = {
-    "S": 0x0000,
-    "X": 0x0400,
-    "Y": 0x0500,
-    "T": 0x0600,
-    "M": 0x0800,
+    "S": (0x0000, 8),
+    "X": (0x0400, 10),
+    "Y": (0x0500, 10),
+    "T": (0x0600, 8),
+    "M": (0x0800, 8),
 }
 
 
@@ -106,8 +106,8 @@ class FXPLCClient:
     async def write_bit(self, register: Union[RegisterDef, str], value: bool) -> None:
         if not isinstance(register, RegisterDef):
             register = RegisterDef.parse(register)
-        top_address = registers_map_bits[register.type.value]
-        addr = top_address + register.num
+        top_address, denominator = registers_map_bits[register.type.value]
+        addr = top_address + (register.num // denominator * 8 + register.num % denominator)
 
         await self._send_command(Commands.FORCE_ON if value else Commands.FORCE_OFF, struct.pack("<H", addr))
 
