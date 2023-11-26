@@ -45,10 +45,7 @@ def register_ui(runtime_settings: RuntimeSettings) -> None:
                 if reg.type in (RegisterType.Input,):
                     u = ui.switch(text=var_def.name, value=bool(val))
                     u.disable()
-                if reg.type in (RegisterType.Output,):
-                    u = ui.switch(text=var_def.name, value=bool(val))
-                    u.disable()
-                if reg.type in (RegisterType.Memory,):
+                if reg.type in (RegisterType.Output, RegisterType.Memory,):
                     async def fn1(var_def_: VariableDefinition, e: Any) -> None:
                         was_enabled = e.value
                         action_str = "enabled" if was_enabled else "disabled"
