@@ -28,7 +28,7 @@ async def main():
     # or, for TCP transport
     # transport = TransportTCP("192.168.1.100", 8888)
     # await transport.connect()
-    
+
     with closing(FXPLCClient(transport)) as fx:
         s0_state = await fx.read_bit("S0")
         t0_state = await fx.read_bit("T0")
@@ -54,6 +54,43 @@ fxplc -p /dev/ttyUSB0 read S0 T0
 # S0 = off
 # T0 = on, counter: 30
 ```
+
+### HTTP server
+
+The project also includes HTTP webserver subproject which exposes REST API for external clients.
+It also serves a simple UI that allows variables viewing and modifying.
+
+#### Usage
+
+```shell
+python --variables vars.yaml --path /dev/ttyUSB0
+python --variables vars.yaml --path tcp:10.5.12.10:8887
+```
+
+#### Example variables file
+
+`vars.yaml`
+
+```yaml
+variables:
+  - name: PUMP
+    register: M10
+  - name: MIXER_OPEN
+    register: D0
+  - name: MIXER_CLOSE
+    register: D1
+  - name: OUT_PUMP
+    register: Y000
+  - name: OUT_MIXER_OPEN
+    register: Y000
+  - name: OUT_MIXER_CLOSE
+    register: Y001
+  - name: FLOW_COUNTER_1
+    register: D50
+```
+
+<img alt=".github/rest.png" height="300" src=".github/rest.png"/>
+<img alt=".github/ui_example.png" height="300" src=".github/ui_example.png"/>
 
 ### Compatibility
 

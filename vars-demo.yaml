@@ -1,0 +1,15 @@
+variables:
+  - name: PUMP
+    register: M10
+  - name: MIXER_OPEN
+    register: D0
+  - name: MIXER_CLOSE
+    register: D1
+  - name: OUT_PUMP
+    register: Y000
+  - name: OUT_MIXER_OPEN
+    register: Y000
+  - name: OUT_MIXER_CLOSE
+    register: Y001
+  - name: FLOW_COUNTER_1
+    register: D50
