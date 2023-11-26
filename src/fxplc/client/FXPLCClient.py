@@ -29,12 +29,12 @@ class Commands(enum.IntEnum):
 
 
 registers_map_bit_images = {
-    "S": 0x0000,
-    "X": 0x0080,
-    "Y": 0x00a0,
-    "T": 0x00c0,
-    "M": 0x0100,
-    "D": 0x1000,
+    "S": (0x0000, 8),
+    "X": (0x0080, 10),
+    "Y": (0x00a0, 10),
+    "T": (0x00c0, 8),
+    "M": (0x0100, 8),
+    "D": (0x1000, 8),
 }
 
 registers_map_data = {
@@ -71,11 +71,8 @@ class RegisterDef:
         return f"{self.type.value}{self.num}"
 
     def get_bit_image_address(self) -> Tuple[int, int]:
-        top_address = registers_map_bit_images[self.type.value]
-        if self.type in (RegisterType.Input, RegisterType.Output):
-            byte_addr, bit = top_address + self.num // 10, self.num % 10
-        else:
-            byte_addr, bit = top_address + self.num // 8, self.num % 8
+        top_address, denominator = registers_map_bit_images[self.type.value]
+        byte_addr, bit = top_address + self.num // denominator, self.num % denominator
         assert bit < 8
         return byte_addr, bit
 
