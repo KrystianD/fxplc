@@ -5,9 +5,9 @@ from nicegui import ui
 from nicegui.functions.refreshable import refreshable
 
 from fxplc.client.FXPLCClient import RegisterDef, RegisterType
+from fxplc.http_server.mytypes import VariableDefinition, RuntimeSettings
 from fxplc.http_server.processor import perform_register_read, perform_register_write, resume_serial, \
     pause_serial, is_running, perform_register_write_bit
-from fxplc.http_server.mytypes import VariableDefinition, RuntimeSettings
 
 
 def set_running(running: bool) -> None:
