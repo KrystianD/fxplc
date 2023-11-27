@@ -1,15 +1,24 @@
 variables:
+  - name: FAN
+    register: Y002
   - name: PUMP
     register: M10
+    group: API
   - name: MIXER_OPEN
     register: D0
+    group: API
   - name: MIXER_CLOSE
     register: D1
+    group: API
   - name: OUT_PUMP
     register: Y000
+    group: OUT
   - name: OUT_MIXER_OPEN
     register: Y000
+    group: OUT
   - name: OUT_MIXER_CLOSE
     register: Y001
+    group: OUT
   - name: FLOW_COUNTER_1
     register: D50
+    group: Data

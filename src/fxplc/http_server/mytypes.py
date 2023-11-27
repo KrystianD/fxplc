@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from pydantic.dataclasses import dataclass
 
@@ -7,6 +7,7 @@ from pydantic.dataclasses import dataclass
 class VariableDefinition:
     name: str
     register: str
+    group: Optional[str] = None
 
 
 @dataclass

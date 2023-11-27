@@ -37,7 +37,7 @@ def register_ui(runtime_settings: RuntimeSettings) -> None:
                 ui.notify(f"Unable to update fetch data", type="negative", timeout=notification_timeout)
                 return
 
-            for var_def in runtime_settings.variables:
+            def emit_control(var_def: VariableDefinition) -> None:
                 val = def_to_val[var_def.name]
 
                 reg = RegisterDef.parse(var_def.register)
@@ -74,6 +74,15 @@ def register_ui(runtime_settings: RuntimeSettings) -> None:
                             .style("width: 300px")
                         ui.button(text="Set", on_click=functools.partial(fn2, ui_value_el, var_def))
 
+            groups = list(dict.fromkeys([x.group for x in runtime_settings.variables]))
+
+            with ui.row():
+                for group in groups:
+                    with ui.card():
+                        ui.label(text=group).style("font-size: 18px; font-weight: bold")
+                        for var_def in (x for x in runtime_settings.variables if x.group == group):
+                            emit_control(var_def)
+
         with ui.row():
             ui.switch(text="Running",
                       value=is_running(),
@@ -82,7 +91,5 @@ def register_ui(runtime_settings: RuntimeSettings) -> None:
             ui.switch(text="REST enabled",
                       value=runtime_settings.rest_enabled,
                       on_change=lambda x: set_rest_enabled(runtime_settings, x.value)).props("color=green")
-        ui.separator()
 
         await ui_vars()
-        ui.separator()
