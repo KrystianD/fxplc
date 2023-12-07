@@ -10,10 +10,10 @@ ReadTimeout = 1
 
 
 class TransportSerial(ITransport):
-    def __init__(self, port: str) -> None:
+    def __init__(self, port: str, baudrate: int = 9600) -> None:
         self._serial = serial.Serial(port=port,
                                      timeout=1,
-                                     baudrate=38400,
+                                     baudrate=baudrate,
                                      bytesize=serial.SEVENBITS,
                                      parity=serial.PARITY_EVEN,
                                      stopbits=serial.STOPBITS_ONE)
