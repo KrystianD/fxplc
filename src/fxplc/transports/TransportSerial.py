@@ -6,17 +6,18 @@ import serial
 
 from .ITransport import ITransport
 
-ReadTimeout = 1
+DefaultReadTimeout = 1
 
 
 class TransportSerial(ITransport):
-    def __init__(self, port: str, baudrate: int = 9600) -> None:
+    def __init__(self, port: str, baudrate: int = 9600, timeout: int = DefaultReadTimeout) -> None:
         self._serial = serial.Serial(port=port,
-                                     timeout=1,
+                                     timeout=timeout,
                                      baudrate=baudrate,
                                      bytesize=serial.SEVENBITS,
                                      parity=serial.PARITY_EVEN,
                                      stopbits=serial.STOPBITS_ONE)
+        self._timeout = timeout
         self._executor = ThreadPoolExecutor(max_workers=1)
 
     def close(self) -> None:

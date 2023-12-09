@@ -8,13 +8,14 @@ class NotConnectedError(Exception):
     pass
 
 
-ReadTimeout = 1
+DefaultReadTimeout = 1
 
 
 class TransportTCP(ITransport):
-    def __init__(self, host: str, port: int) -> None:
+    def __init__(self, host: str, port: int, timeout: int = DefaultReadTimeout) -> None:
         self._host = host
         self._port = port
+        self._timeout = timeout
         self._reader: StreamReader | None = None
         self._writer: StreamWriter | None = None
 
@@ -37,7 +38,7 @@ class TransportTCP(ITransport):
         if self._reader is None or self._writer is None:
             raise NotConnectedError()
 
-        return await asyncio.wait_for(self._reader.read(size), ReadTimeout)
+        return await asyncio.wait_for(self._reader.read(size), self._timeout)
 
 
 __all__ = [
