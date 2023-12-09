@@ -25,9 +25,15 @@ def register_ui(runtime_settings: RuntimeSettings) -> None:
     @ui.page('/')  # type: ignore
     async def ui_index() -> None:
         notification_timeout = 1000
+        only_placeholder = True
 
         @refreshable  # type: ignore
         async def ui_vars() -> None:
+            nonlocal only_placeholder
+            if only_placeholder:
+                only_placeholder = False
+                return
+
             def_to_val = {}
             try:
                 for var_def in runtime_settings.variables:
@@ -93,3 +99,4 @@ def register_ui(runtime_settings: RuntimeSettings) -> None:
                       on_change=lambda x: set_rest_enabled(runtime_settings, x.value)).props("color=green")
 
         await ui_vars()
+        ui_vars.refresh()
