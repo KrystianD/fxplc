@@ -13,6 +13,7 @@ async def main() -> None:
     argparser = argparse.ArgumentParser()
     argparser.add_argument('-d', '--debug', action='store_true')
     argparser.add_argument('-p', '--path', type=str, metavar="PATH", required=True)
+    argparser.add_argument('--timeout', type=int, default=1)
 
     op_sp = argparser.add_subparsers(title="operation")
 
@@ -51,11 +52,11 @@ async def main() -> None:
     transport: ITransport
     if args.path.startswith("tcp:"):
         _, host, port = args.path.split(":")
-        tcp_transport = TransportTCP(host, int(port))
+        tcp_transport = TransportTCP(host, int(port), timeout=args.timeout)
         await tcp_transport.connect()
         transport = tcp_transport
     else:
-        transport = TransportSerial(args.path)
+        transport = TransportSerial(args.path, timeout=args.timeout)
     fx = FXPLCClient(transport)
 
     try:
