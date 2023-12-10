@@ -12,7 +12,7 @@ DefaultReadTimeout = 1
 
 
 class TransportTCP(ITransport):
-    def __init__(self, host: str, port: int, timeout: int = DefaultReadTimeout) -> None:
+    def __init__(self, host: str, port: int, timeout: float = DefaultReadTimeout) -> None:
         self._host = host
         self._port = port
         self._timeout = timeout
