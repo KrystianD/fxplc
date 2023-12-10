@@ -34,6 +34,8 @@ def register_ui(runtime_settings: RuntimeSettings) -> None:
                 only_placeholder = False
                 return
 
+            spinner_el = ui.spinner(size='lg')
+
             def_to_val = {}
             try:
                 for var_def in runtime_settings.variables:
@@ -42,6 +44,8 @@ def register_ui(runtime_settings: RuntimeSettings) -> None:
             except:
                 ui.notify(f"Unable to update fetch data", type="negative", timeout=notification_timeout)
                 return
+            finally:
+                spinner_el.delete()
 
             def emit_control(var_def: VariableDefinition) -> None:
                 val = def_to_val[var_def.name]
