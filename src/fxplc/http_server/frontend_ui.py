@@ -68,7 +68,7 @@ def register_ui(runtime_settings: RuntimeSettings) -> None:
 
                     with ui.row():
                         ui.switch(text=var_def.name, value=bool(val), on_change=functools.partial(fn1, var_def))
-                if reg.type in (RegisterType.Data,):
+                if reg.type in (RegisterType.Data, RegisterType.Counter):
                     async def fn2(ui_value_el_: Any, var_def_: VariableDefinition) -> None:
                         try:
                             await perform_register_write(var_def_.register, ui_value_el_.value)
