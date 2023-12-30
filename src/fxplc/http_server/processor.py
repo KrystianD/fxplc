@@ -140,8 +140,13 @@ async def serial_task_loop() -> None:
                 req_.timeout_handle.cancel()
                 req_.future.set_result(res)
                 return
-            except (ResponseMalformedError, NoResponseError):
-                print('error, retry')
+            except (ResponseMalformedError, NoResponseError) as e:
+                logging.error(f"retryable request error: {type(e)} {e}")
+            except Exception as e:
+                logging.error(f"general request error: {type(e)} {e}")
+                req_.timeout_handle.cancel()
+                req_.future.set_exception(RequestException())
+                return
 
         req_.timeout_handle.cancel()
         req_.future.set_exception(RequestException())
