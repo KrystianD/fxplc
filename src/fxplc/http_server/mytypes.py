@@ -2,12 +2,15 @@ from typing import List, Optional
 
 from pydantic.dataclasses import dataclass
 
+from fxplc.client.number_type import NumberType
+
 
 @dataclass
 class VariableDefinition:
     name: str
     register: str
     group: Optional[str] = None
+    number_type: NumberType = NumberType.WordSigned
 
 
 @dataclass

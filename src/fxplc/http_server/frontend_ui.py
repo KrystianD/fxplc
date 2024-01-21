@@ -39,7 +39,7 @@ def register_ui(runtime_settings: RuntimeSettings) -> None:
             def_to_val = {}
             try:
                 for var_def in runtime_settings.variables:
-                    val = await perform_register_read(var_def.register)
+                    val = await perform_register_read(var_def.register, var_def.number_type)
                     def_to_val[var_def.name] = val
             except:
                 ui.notify(f"Unable to update fetch data", type="negative", timeout=notification_timeout)
@@ -71,7 +71,7 @@ def register_ui(runtime_settings: RuntimeSettings) -> None:
                 if reg.type in (RegisterType.Data, RegisterType.Counter):
                     async def fn2(ui_value_el_: Any, var_def_: VariableDefinition) -> None:
                         try:
-                            await perform_register_write(var_def_.register, ui_value_el_.value)
+                            await perform_register_write(var_def_.register, ui_value_el_.value, var_def_.number_type)
                             ui.notify(f"{var_def_.name} set to {ui_value_el_.value}", type="positive",
                                       timeout=notification_timeout)
                         except:

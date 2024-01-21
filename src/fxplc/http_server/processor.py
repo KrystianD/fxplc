@@ -9,6 +9,7 @@ from fastapi import HTTPException
 
 from fxplc.client.FXPLCClient import FXPLCClient, RegisterDef, RegisterType
 from fxplc.client.errors import ResponseMalformedError, NoResponseError
+from fxplc.client.number_type import NumberType
 from fxplc.http_server.exceptions import RequestException, RequestTimeoutException
 from fxplc.transports.ITransport import ITransport
 from fxplc.transports.TransportSerial import TransportSerial
@@ -52,22 +53,22 @@ async def do_request(callback: Callable[[FXPLCClient], Awaitable[T]]) -> T:
         raise HTTPException(status_code=400, detail="request error")
 
 
-async def perform_register_read(register: str) -> int | bool:
+async def perform_register_read(register: str, number_type: NumberType) -> int | float | bool:
     register_def = RegisterDef.parse(register)
 
-    async def cb(fx: FXPLCClient) -> int | bool:
+    async def cb(fx: FXPLCClient) -> int | float | bool:
         if register_def.type in (RegisterType.Input, RegisterType.Output, RegisterType.Memory,
                                  RegisterType.State, RegisterType.Timer):
             return await fx.read_bit(register_def)
         elif register_def.type in (RegisterType.Data, RegisterType.Counter):
-            return await fx.read_int(register_def)
+            return await fx.read_number(register_def, number_type)
         else:
             raise Exception("unsupported")
 
     return await do_request(cb)
 
 
-async def perform_register_write(register: str, value: int | bool) -> int | bool:
+async def perform_register_write(register: str, value: int | bool, number_type: NumberType) -> int | bool:
     register_def = RegisterDef.parse(register)
 
     async def cb(fx: FXPLCClient) -> int | bool:
@@ -76,7 +77,7 @@ async def perform_register_write(register: str, value: int | bool) -> int | bool
             await fx.write_bit(register_def, bool(value))
             return bool(value)
         elif register_def.type in (RegisterType.Data, RegisterType.Counter):
-            await fx.write_int(register_def, int(value))
+            await fx.write_number(register_def, int(value), number_type)
             return int(value)
         else:
             raise Exception("unsupported")
