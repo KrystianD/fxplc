@@ -3,9 +3,10 @@ import binascii
 import enum
 import logging
 import struct
-from typing import Tuple, Union
+from typing import Tuple, Union, cast
 
 from fxplc.client.errors import ResponseMalformedError, NoResponseError, NotSupportedCommandError
+from fxplc.client.number_type import NumberType, register_type_converters
 from fxplc.transports.ITransport import ITransport
 
 logger = logging.getLogger("fxplc")
@@ -112,15 +113,21 @@ class FXPLCClient:
         await self._send_command(Commands.FORCE_ON if value else Commands.FORCE_OFF, struct.pack("<H", addr))
 
     async def read_int(self, register: Union[RegisterDef, str]) -> int:
+        return cast(int, await self.read_number(register, NumberType.WordSigned))
+
+    async def read_number(self, register: Union[RegisterDef, str], numer_type: NumberType) -> int | float:
         if not isinstance(register, RegisterDef):
             register = RegisterDef.parse(register)
         addr = registers_map_data[register.type.value] + register.num * 2
 
-        resp = await self.read_bytes(addr, 2)
-        if len(resp) != 2:
+        number_type_converter = register_type_converters[numer_type]
+        byte_size = struct.calcsize(number_type_converter.format_str)
+
+        resp = await self.read_bytes(addr, byte_size)
+        if len(resp) != byte_size:
             raise ResponseMalformedError()
 
-        value: int = struct.unpack("<H", resp)[0]
+        value: int | float = struct.unpack(number_type_converter.format_str, resp)[0]
         return value
 
     async def read_bytes(self, addr: int, count: int = 1) -> bytes:
@@ -133,11 +140,16 @@ class FXPLCClient:
         await self._send_command(Commands.BYTE_WRITE, req)
 
     async def write_int(self, register: Union[RegisterDef, str], value: int) -> None:
+        await self.write_number(register, value, NumberType.WordSigned)
+
+    async def write_number(self, register: Union[RegisterDef, str], value: int | float, numer_type: NumberType) -> None:
         if not isinstance(register, RegisterDef):
             register = RegisterDef.parse(register)
         addr = registers_map_data[register.type.value] + register.num * 2
 
-        await self.write_bytes(addr, struct.pack("H", value))
+        number_type_converter = register_type_converters[numer_type]
+
+        await self.write_bytes(addr, struct.pack(number_type_converter.format_str, value))
 
     async def _send_command(self, cmd: int, data: bytes) -> bytes:
         cmd_hex = bytes([ord("0") + cmd])
