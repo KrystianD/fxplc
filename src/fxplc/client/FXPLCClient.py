@@ -115,12 +115,12 @@ class FXPLCClient:
     async def read_int(self, register: Union[RegisterDef, str]) -> int:
         return cast(int, await self.read_number(register, NumberType.WordSigned))
 
-    async def read_number(self, register: Union[RegisterDef, str], numer_type: NumberType) -> int | float:
+    async def read_number(self, register: Union[RegisterDef, str], number_type: NumberType) -> int | float:
         if not isinstance(register, RegisterDef):
             register = RegisterDef.parse(register)
         addr = registers_map_data[register.type.value] + register.num * 2
 
-        number_type_converter = register_type_converters[numer_type]
+        number_type_converter = register_type_converters[number_type]
         byte_size = struct.calcsize(number_type_converter.format_str)
 
         resp = await self.read_bytes(addr, byte_size)
@@ -142,12 +142,12 @@ class FXPLCClient:
     async def write_int(self, register: Union[RegisterDef, str], value: int) -> None:
         await self.write_number(register, value, NumberType.WordSigned)
 
-    async def write_number(self, register: Union[RegisterDef, str], value: int | float, numer_type: NumberType) -> None:
+    async def write_number(self, register: Union[RegisterDef, str], value: int | float, number_type: NumberType) -> None:
         if not isinstance(register, RegisterDef):
             register = RegisterDef.parse(register)
         addr = registers_map_data[register.type.value] + register.num * 2
 
-        number_type_converter = register_type_converters[numer_type]
+        number_type_converter = register_type_converters[number_type]
 
         await self.write_bytes(addr, struct.pack(number_type_converter.format_str, value))
 
