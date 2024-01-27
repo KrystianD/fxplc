@@ -129,8 +129,6 @@ async def serial_task_loop() -> None:
         transport = tcp_transport
     else:
         transport = TransportSerial(app_args.path)
-    fx = FXPLCClient(transport)
-    logging.info("connection opened")
 
     async def perform_single_request(req_: FXRequest) -> None:
         for i in range(5):
@@ -153,6 +151,7 @@ async def serial_task_loop() -> None:
         req_.future.set_exception(RequestException())
 
     with closing(FXPLCClient(transport)) as fx:
+        logging.info("connection opened")
         while True:
             req = await queue.get()
             await perform_single_request(req)
