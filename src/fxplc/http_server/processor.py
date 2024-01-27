@@ -130,31 +130,34 @@ async def serial_task_loop() -> None:
     else:
         transport = TransportSerial(app_args.path)
 
-    async def perform_single_request(req_: FXRequest) -> None:
+    async def perform_single_request(req_: FXRequest) -> bool:
         for i in range(5):
             try:
                 if req_.future.done():
-                    return
+                    return True
                 res = await req_.callback(fx)
                 req_.timeout_handle.cancel()
                 req_.future.set_result(res)
-                return
+                return True
             except (ResponseMalformedError, NoResponseError) as e:
                 logging.error(f"retryable request error: {type(e)} {e}")
             except Exception as e:
                 logging.error(f"general request error: {type(e)} {e}")
                 req_.timeout_handle.cancel()
                 req_.future.set_exception(RequestException())
-                return
+                return False
 
         req_.timeout_handle.cancel()
         req_.future.set_exception(RequestException())
+        return False
 
     with closing(FXPLCClient(transport)) as fx:
         logging.info("connection opened")
         while True:
             req = await queue.get()
-            await perform_single_request(req)
+            if not await perform_single_request(req):
+                logging.info("request processing error")
+                return
 
 
 def run_serial_task(args: Any) -> None:
