@@ -11,9 +11,7 @@ from fxplc.client.FXPLCClient import FXPLCClient, RegisterDef, RegisterType
 from fxplc.client.errors import ResponseMalformedError, NoResponseError
 from fxplc.client.number_type import NumberType
 from fxplc.http_server.exceptions import RequestException, RequestTimeoutException
-from fxplc.transports.ITransport import ITransport
-from fxplc.transports.TransportSerial import TransportSerial
-from fxplc.transports.TransportTCP import TransportTCP
+from fxplc.http_server.transport import connect_to_transport, TransportConfig
 
 
 class FXRequest:
@@ -26,7 +24,7 @@ T = TypeVar("T")
 
 RequestTimeout = 10
 
-app_args: Any = None
+transport_config: TransportConfig | None = None
 serial_task_handle: asyncio.Task[None] | None = None
 queue = asyncio.Queue[FXRequest](maxsize=10)
 
@@ -121,20 +119,6 @@ async def serial_task() -> None:
 
 
 async def serial_task_loop() -> None:
-    global app_args
-
-    logging.info("connecting to FX...")
-    transport: ITransport
-    if app_args.path.startswith("tcp:"):
-        _, host, port = app_args.path.split(":")
-        tcp_transport = TransportTCP(host, int(port))
-        logging.info("connecting TCP transport...")
-        await tcp_transport.connect()
-        logging.info("connection done")
-        transport = tcp_transport
-    else:
-        transport = TransportSerial(app_args.path)
-
     async def perform_single_request(req_: FXRequest) -> bool:
         for i in range(5):
             try:
@@ -156,6 +140,11 @@ async def serial_task_loop() -> None:
         req_.future.set_exception(RequestException())
         return False
 
+    if transport_config is None:
+        raise Exception("transport_config is not configured")
+
+    logging.info("connecting to FX...")
+    transport = await connect_to_transport(transport_config)
     with closing(FXPLCClient(transport)) as fx:
         logging.info("connection opened")
         while True:
@@ -165,9 +154,9 @@ async def serial_task_loop() -> None:
                 return
 
 
-def run_serial_task(args: Any) -> None:
-    global app_args
-    app_args = args
+def run_serial_task(transport_config_: TransportConfig) -> None:
+    global transport_config
+    transport_config = transport_config_
 
     resume_serial()
 

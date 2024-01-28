@@ -13,6 +13,7 @@ from fxplc.http_server.frontend_ui import register_ui
 from fxplc.http_server.processor import perform_register_read, perform_register_write, resume_serial, \
     pause_serial, run_serial_task, perform_register_write_bit, perform_register_read_bit
 from fxplc.http_server.mytypes import VariableDefinition, VariablesFile, RuntimeSettings
+from fxplc.http_server.transport import TransportConfig
 from fxplc.http_server.utils import read_yaml_file
 
 
@@ -216,12 +217,14 @@ def run_server(args: Any) -> None:
 
     started = False
 
+    transport_config = TransportConfig(path=args.path)
+
     def on_startup() -> None:
         nonlocal started
         if started:
             return
         started = True
-        run_serial_task(args)
+        run_serial_task(transport_config)
 
     app.on_startup(on_startup)
 
