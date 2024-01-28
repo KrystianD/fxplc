@@ -22,16 +22,26 @@ class TransportTCP(ITransport):
         self._s: socket.socket | None = None
 
     async def connect(self) -> None:
-        self._s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self._s.setblocking(False)
+        loop = asyncio.get_event_loop()
 
-        await asyncio.get_event_loop().sock_connect(self._s, (self._host, self._port))
-        await asyncio.sleep(self._flush_delay)
-        while True:
-            try:
-                self._s.recv(1024)
-            except BlockingIOError:
-                break
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.setblocking(False)
+
+        try:
+            await asyncio.wait_for(loop.sock_connect(s, (self._host, self._port)), timeout=self._timeout)
+            await asyncio.sleep(self._flush_delay)
+            while True:
+                try:
+                    rd = s.recv(1024)
+                    if len(rd) == 0:
+                        raise ConnectionError()
+                except BlockingIOError:
+                    break
+        except:
+            s.close()
+            raise
+
+        self._s = s
 
     def close(self) -> None:
         if self._s is None:
