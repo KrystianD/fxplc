@@ -112,6 +112,9 @@ async def serial_task() -> None:
         except asyncio.exceptions.CancelledError:
             logging.info("serial task stopped")
             return
+        except (ConnectionRefusedError, ConnectionError, TimeoutError) as e:
+            logging.warning(f"connection error ({type(e).__name__}): {e}")
+            await asyncio.sleep(1)
         except:
             traceback.print_exc()
             await asyncio.sleep(1)
@@ -125,7 +128,9 @@ async def serial_task_loop() -> None:
     if app_args.path.startswith("tcp:"):
         _, host, port = app_args.path.split(":")
         tcp_transport = TransportTCP(host, int(port))
+        logging.info("connecting TCP transport...")
         await tcp_transport.connect()
+        logging.info("connection done")
         transport = tcp_transport
     else:
         transport = TransportSerial(app_args.path)
@@ -140,9 +145,9 @@ async def serial_task_loop() -> None:
                 req_.future.set_result(res)
                 return True
             except (ResponseMalformedError, NoResponseError) as e:
-                logging.error(f"retryable request error: {type(e)} {e}")
+                logging.error(f"retryable request error ({type(e).__name__}) {e}")
             except Exception as e:
-                logging.error(f"general request error: {type(e)} {e}")
+                logging.error(f"general request error ({type(e).__name__}) {e}")
                 req_.timeout_handle.cancel()
                 req_.future.set_exception(RequestException())
                 return False
