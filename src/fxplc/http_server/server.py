@@ -214,7 +214,13 @@ def run_server(args: Any) -> None:
 
     app.state.runtime_settings = runtime_settings
 
+    started = False
+
     def on_startup() -> None:
+        nonlocal started
+        if started:
+            return
+        started = True
         run_serial_task(args)
 
     app.on_startup(on_startup)
