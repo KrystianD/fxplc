@@ -60,7 +60,8 @@ class TransportTCP(ITransport):
         if self._s is None:
             raise NotConnectedError()
 
-        return await asyncio.get_event_loop().sock_recv(self._s, size)
+        loop = asyncio.get_event_loop()
+        return await asyncio.wait_for(loop.sock_recv(self._s, size), timeout=self._timeout)
 
 
 __all__ = [
