@@ -66,4 +66,5 @@ class TransportTCP(ITransport):
 
 __all__ = [
     "TransportTCP",
+    "NotConnectedError",
 ]
