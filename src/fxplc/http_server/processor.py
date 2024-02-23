@@ -119,28 +119,6 @@ async def serial_task() -> None:
 
 
 async def serial_task_loop() -> None:
-    async def perform_single_request(req_: FXRequest) -> bool:
-        for i in range(5):
-            try:
-                if req_.future.done():
-                    return True
-                res = await req_.callback(fx)
-                req_.timeout_handle.cancel()
-                req_.future.set_result(res)
-                return True
-            except (ResponseMalformedError, NoResponseError) as e:
-                logging.error(f"retryable request error ({type(e).__name__}) {e}")
-                await asyncio.sleep(0.5)
-            except Exception as e:
-                logging.error(f"general request error ({type(e).__name__}) {e}")
-                req_.timeout_handle.cancel()
-                req_.future.set_exception(RequestException())
-                return False
-
-        req_.timeout_handle.cancel()
-        req_.future.set_exception(RequestException())
-        return False
-
     if transport_config is None:
         raise Exception("transport_config is not configured")
 
@@ -150,9 +128,32 @@ async def serial_task_loop() -> None:
         logging.info("connection opened")
         while True:
             req = await queue.get()
-            if not await perform_single_request(req):
+            if not await perform_single_request(fx, req):
                 logging.info("request processing error")
                 return
+
+
+async def perform_single_request(fx: FXPLCClient, req: FXRequest) -> bool:
+    for i in range(5):
+        try:
+            if req.future.done():
+                return True
+            res = await req.callback(fx)
+            req.timeout_handle.cancel()
+            req.future.set_result(res)
+            return True
+        except (ResponseMalformedError, NoResponseError) as e:
+            logging.error(f"retryable request error ({type(e).__name__}) {e}")
+            await asyncio.sleep(0.5)
+        except Exception as e:
+            logging.error(f"general request error ({type(e).__name__}) {e}")
+            req.timeout_handle.cancel()
+            req.future.set_exception(RequestException())
+            return False
+
+    req.timeout_handle.cancel()
+    req.future.set_exception(RequestException())
+    return False
 
 
 def run_serial_task(transport_config_: TransportConfig) -> None:
