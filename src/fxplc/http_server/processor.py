@@ -17,7 +17,6 @@ from fxplc.http_server.transport import connect_to_transport, TransportConfig
 class FXRequest:
     future: asyncio.Future[Any]
     callback: Callable[[FXPLCClient], Awaitable[Any]]
-    timeout_handle: asyncio.TimerHandle
 
 
 T = TypeVar("T")
@@ -33,24 +32,19 @@ async def do_request(callback: Callable[[FXPLCClient], Awaitable[T]]) -> T:
     if not is_running():
         raise HTTPException(status_code=503, detail="server is paused")
 
-    loop = asyncio.get_event_loop()
-
     fxr = FXRequest()
     fxr.future = asyncio.Future[T]()
     fxr.callback = callback
-    fxr.timeout_handle = loop.call_later(RequestTimeout, fxr.future.set_exception, RequestTimeoutException())
 
     try:
         queue.put_nowait(fxr)
-        return await fxr.future
+        return await asyncio.wait_for(fxr.future, RequestTimeout)
     except QueueFull:
         raise HTTPException(status_code=429, detail="requests queue full")
-    except RequestTimeoutException:
+    except TimeoutError:
         raise HTTPException(status_code=400, detail="request timeout")
     except RequestException:
         raise HTTPException(status_code=400, detail="request error")
-    finally:
-        fxr.timeout_handle.cancel()
 
 
 async def perform_register_read(register: str, number_type: NumberType) -> int | float | bool:
@@ -141,7 +135,6 @@ async def perform_single_request(fx: FXPLCClient, req: FXRequest) -> bool:
             if req.future.done():
                 return True
             res = await req.callback(fx)
-            req.timeout_handle.cancel()
             if not req.future.done():
                 req.future.set_result(res)
             return True
@@ -150,11 +143,9 @@ async def perform_single_request(fx: FXPLCClient, req: FXRequest) -> bool:
             await asyncio.sleep(0.5)
         except Exception as e:
             logging.error(f"general request error ({type(e).__name__}) {e}")
-            req.timeout_handle.cancel()
             req.future.set_exception(RequestException())
             return False
 
-    req.timeout_handle.cancel()
     if not req.future.done():
         req.future.set_exception(RequestException())
     return False
