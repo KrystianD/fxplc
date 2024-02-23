@@ -49,6 +49,8 @@ async def do_request(callback: Callable[[FXPLCClient], Awaitable[T]]) -> T:
         raise HTTPException(status_code=400, detail="request timeout")
     except RequestException:
         raise HTTPException(status_code=400, detail="request error")
+    finally:
+        fxr.timeout_handle.cancel()
 
 
 async def perform_register_read(register: str, number_type: NumberType) -> int | float | bool:
