@@ -130,6 +130,7 @@ async def serial_task_loop() -> None:
                 return True
             except (ResponseMalformedError, NoResponseError) as e:
                 logging.error(f"retryable request error ({type(e).__name__}) {e}")
+                await asyncio.sleep(0.5)
             except Exception as e:
                 logging.error(f"general request error ({type(e).__name__}) {e}")
                 req_.timeout_handle.cancel()
