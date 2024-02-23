@@ -140,7 +140,8 @@ async def perform_single_request(fx: FXPLCClient, req: FXRequest) -> bool:
                 return True
             res = await req.callback(fx)
             req.timeout_handle.cancel()
-            req.future.set_result(res)
+            if not req.future.done():
+                req.future.set_result(res)
             return True
         except (ResponseMalformedError, NoResponseError) as e:
             logging.error(f"retryable request error ({type(e).__name__}) {e}")
@@ -152,7 +153,8 @@ async def perform_single_request(fx: FXPLCClient, req: FXRequest) -> bool:
             return False
 
     req.timeout_handle.cancel()
-    req.future.set_exception(RequestException())
+    if not req.future.done():
+        req.future.set_exception(RequestException())
     return False
 
 
