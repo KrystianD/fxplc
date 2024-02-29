@@ -1,7 +1,7 @@
 [project]
 name = "fxplc"
 version = "0.2.1"
-description = "Python connector for low-level Mitsubishi MELSEC FX series (FX-232AW) serial protocol"
+description = "Python connector for low-level Mitsubishi MELSEC FX series (FX-232AW) serial protocol with builtin HTTP server"
 readme = "README.md"
 license = { file = "LICENSE.txt" }
 requires-python = ">=3.8"
