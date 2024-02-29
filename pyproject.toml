@@ -10,12 +10,13 @@ authors = [
     { name = "Krystian Dużyński" },
 ]
 
-dependencies = [
-    "pyserial==3.5"
-]
+dynamic = ["dependencies"]
 
 [project.urls]
 repository = "https://github.com/KrystianD/fxplc"
+
+[tool.setuptools.dynamic]
+dependencies = { file = ["requirements.txt"] }
 
 [project.scripts]
 fxplc = "fxplc.cli.main:main_cli"
