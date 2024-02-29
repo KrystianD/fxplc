@@ -13,6 +13,7 @@ class TransportSerial(ITransport):
     def __init__(self, port: str, baudrate: int = 9600, timeout: float = DefaultReadTimeout) -> None:
         self._serial = serial.Serial(port=port,
                                      timeout=timeout,
+                                     write_timeout=timeout,
                                      baudrate=baudrate,
                                      bytesize=serial.SEVENBITS,
                                      parity=serial.PARITY_EVEN,
