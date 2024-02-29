@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 import traceback
 from asyncio import QueueFull
 from contextlib import closing
@@ -8,6 +9,7 @@ from typing import Any, Callable, Awaitable, TypeVar
 from fastapi import HTTPException
 
 from fxplc.client.FXPLCClient import FXPLCClient, RegisterDef, RegisterType
+from fxplc.client.FXPLCClientMock import FXPLCClientMock
 from fxplc.client.errors import ResponseMalformedError, NoResponseError
 from fxplc.client.number_type import NumberType
 from fxplc.http_server.exceptions import RequestException, RequestTimeoutException
@@ -120,7 +122,10 @@ async def serial_task_loop() -> None:
 
     logging.info("connecting to FX...")
     transport = await connect_to_transport(transport_config)
-    with closing(FXPLCClient(transport)) as fx:
+    client_cls = FXPLCClient(transport)
+    if os.getenv("DEMO") == "1":
+        client_cls = FXPLCClientMock()
+    with closing(client_cls) as fx:
         logging.info("connection opened")
         while True:
             req = await queue.get()
