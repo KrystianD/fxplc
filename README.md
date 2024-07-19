@@ -63,8 +63,8 @@ It also serves a simple UI that allows variables viewing and modifying.
 #### Usage
 
 ```shell
-python --variables vars.yaml --path /dev/ttyUSB0
-python --variables vars.yaml --path tcp:10.5.12.10:8887
+python --variables vars.yaml --path /dev/ttyUSB0 http_server/__main__.py
+python --variables vars.yaml --path tcp:10.5.12.10:8887 http_server/__main__.py
 ```
 
 #### Example variables file
@@ -89,7 +89,12 @@ variables:
     register: D50
 ```
 
+#### HTTP server documentation
+
 <img alt=".github/rest.png" height="300" src=".github/rest.png"/>
+
+#### HTTP server User Interface
+
 <img alt=".github/ui_example.png" height="300" src=".github/ui_example.png"/>
 
 ### Compatibility
