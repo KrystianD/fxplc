@@ -5,7 +5,7 @@ description = "Python connector for low-level Mitsubishi MELSEC FX series (FX-23
 readme = "README.md"
 license = { file = "LICENSE.txt" }
 requires-python = ">=3.8"
-keywords = ["cli", "client", "fx", "melsec", "mutsubishi", "serial"]
+keywords = ["cli", "client", "fx", "melsec", "mitsubishi", "serial"]
 authors = [
     { name = "Krystian Dużyński" },
 ]
