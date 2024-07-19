@@ -1,10 +1,12 @@
 import functools
 from typing import Any
+import urllib.parse
 
-from nicegui import ui
+from nicegui import ui, Client
 from nicegui.functions.refreshable import refreshable
 
 from fxplc.client.FXPLCClient import RegisterDef, RegisterType
+from fxplc.http_server.js_helpers import add_custom_json, js_copy_handler
 from fxplc.http_server.mytypes import VariableDefinition, RuntimeSettings
 from fxplc.http_server.processor import perform_register_read, perform_register_write, resume_serial, \
     pause_serial, is_running, perform_register_write_bit
@@ -23,9 +25,22 @@ def set_rest_enabled(runtime_settings: RuntimeSettings, enabled: bool) -> None:
 
 def register_ui(runtime_settings: RuntimeSettings) -> None:
     @ui.page('/')  # type: ignore
-    async def ui_index() -> None:
+    async def ui_index(client: Client) -> None:
+        add_custom_json()
+
+        await client.connected()
+        url = await ui.run_javascript('window.location.href')
+
         notification_timeout = 1000
         only_placeholder = True
+
+        def append_context_menu(el, var_def):
+            with el:
+                with ui.context_menu():
+                    ui.menu_item(f'Copy name') \
+                        .on('click', js_handler=js_copy_handler(var_def.name))
+                    ui.menu_item(f'Copy GET URL') \
+                        .on('click', js_handler=js_copy_handler(urllib.parse.urljoin(url, f"variable/{var_def.name}")))
 
         @refreshable  # type: ignore
         async def ui_vars() -> None:
@@ -55,6 +70,7 @@ def register_ui(runtime_settings: RuntimeSettings) -> None:
                 if reg.type in (RegisterType.Input,):
                     u = ui.switch(text=var_def.name, value=bool(val))
                     u.disable()
+                    append_context_menu(u, var_def)
                 if reg.type in (RegisterType.Output, RegisterType.Memory,):
                     async def fn1(var_def_: VariableDefinition, e: Any) -> None:
                         was_enabled = e.value
@@ -70,6 +86,7 @@ def register_ui(runtime_settings: RuntimeSettings) -> None:
                         u = ui.switch(text=var_def.name, value=bool(val), on_change=functools.partial(fn1, var_def))
                         if var_def.readonly:
                             u.disable()
+                        append_context_menu(u, var_def)
                 if reg.type in (RegisterType.Data, RegisterType.Counter):
                     async def fn2(ui_value_el_: Any, var_def_: VariableDefinition) -> None:
                         try:
@@ -84,6 +101,7 @@ def register_ui(runtime_settings: RuntimeSettings) -> None:
                         r.style("align-items: center;")
                         ui_value_el = ui.number(label=var_def.name, value=int(val), on_change=None) \
                             .style("width: 300px")
+                        append_context_menu(ui_value_el, var_def)
                         if var_def.readonly:
                             ui_value_el.disable()
                         else:
