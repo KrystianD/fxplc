@@ -11,6 +11,7 @@ class VariableDefinition:
     register: str
     group: Optional[str] = None
     number_type: NumberType = NumberType.WordSigned
+    readonly: bool = False
 
 
 @dataclass

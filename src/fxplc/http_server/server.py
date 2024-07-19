@@ -138,6 +138,9 @@ async def variables_name_put(name: str,
 
     var_def = find_variable_def(name)
 
+    if var_def.readonly:
+        raise HTTPException(status_code=403, detail="Readonly variable")
+
     if value is not None:
         value_to_set = value
     elif value_body is not None:
@@ -160,6 +163,9 @@ async def variables_name_enable_put(name: str) -> Any:
 
     var_def = find_variable_def(name)
 
+    if var_def.readonly:
+        raise HTTPException(status_code=403, detail="Readonly variable")
+
     value_set = await perform_register_write_bit(var_def.register, True)
 
     return {
@@ -176,6 +182,9 @@ async def variables_name_disable_put(name: str) -> Any:
 
     var_def = find_variable_def(name)
 
+    if var_def.readonly:
+        raise HTTPException(status_code=403, detail="Readonly variable")
+
     value_set = await perform_register_write_bit(var_def.register, False)
 
     return {
@@ -191,6 +200,9 @@ async def variables_name_toggle_put(name: str) -> Any:
         raise HTTPException(status_code=400, detail="REST disabled")
 
     var_def = find_variable_def(name)
+
+    if var_def.readonly:
+        raise HTTPException(status_code=403, detail="Readonly variable")
 
     val = await perform_register_read_bit(var_def.register)
     value_set = await perform_register_write_bit(var_def.register, not val)

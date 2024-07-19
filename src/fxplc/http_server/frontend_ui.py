@@ -67,7 +67,9 @@ def register_ui(runtime_settings: RuntimeSettings) -> None:
                                       timeout=notification_timeout)
 
                     with ui.row():
-                        ui.switch(text=var_def.name, value=bool(val), on_change=functools.partial(fn1, var_def))
+                        u = ui.switch(text=var_def.name, value=bool(val), on_change=functools.partial(fn1, var_def))
+                        if var_def.readonly:
+                            u.disable()
                 if reg.type in (RegisterType.Data, RegisterType.Counter):
                     async def fn2(ui_value_el_: Any, var_def_: VariableDefinition) -> None:
                         try:
@@ -82,7 +84,10 @@ def register_ui(runtime_settings: RuntimeSettings) -> None:
                         r.style("align-items: center;")
                         ui_value_el = ui.number(label=var_def.name, value=int(val), on_change=None) \
                             .style("width: 300px")
-                        ui.button(text="Set", on_click=functools.partial(fn2, ui_value_el, var_def))
+                        if var_def.readonly:
+                            ui_value_el.disable()
+                        else:
+                            ui.button(text="Set", on_click=functools.partial(fn2, ui_value_el, var_def))
 
             groups = list(dict.fromkeys([x.group for x in runtime_settings.variables]))
 
