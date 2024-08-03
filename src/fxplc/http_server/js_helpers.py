@@ -22,4 +22,4 @@ function unsecuredCopyToClipboard(text) {
   }
   document.body.removeChild(textArea);
 }
-</script>;""")
+</script>""")
