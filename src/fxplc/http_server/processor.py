@@ -15,6 +15,8 @@ from fxplc.client.number_type import NumberType
 from fxplc.http_server.exceptions import RequestException, RequestTimeoutException
 from fxplc.http_server.transport import connect_to_transport, TransportConfig
 
+logger = logging.getLogger("fxplc.server")
+
 
 class FXRequest:
     future: asyncio.Future[Any]
@@ -30,9 +32,11 @@ serial_task_handle: asyncio.Task[None] | None = None
 queue = asyncio.Queue[FXRequest](maxsize=10)
 
 
-async def do_request(callback: Callable[[FXPLCClient], Awaitable[T]]) -> T:
+async def do_request(callback: Callable[[FXPLCClient], Awaitable[T]], opname: str) -> T:
     if not is_running():
         raise HTTPException(status_code=503, detail="server is paused")
+
+    logger.debug(f"request: {opname}")
 
     fxr = FXRequest()
     fxr.future = asyncio.Future[T]()
@@ -61,7 +65,7 @@ async def perform_register_read(register: str, number_type: NumberType) -> int |
         else:
             raise Exception("unsupported")
 
-    return await do_request(cb)
+    return await do_request(cb, f"READ {register}")
 
 
 async def perform_register_write(register: str, value: int | bool, number_type: NumberType) -> int | bool:
@@ -78,7 +82,7 @@ async def perform_register_write(register: str, value: int | bool, number_type: 
         else:
             raise Exception("unsupported")
 
-    return await do_request(cb)
+    return await do_request(cb, f"WRITE {register}={value}")
 
 
 async def perform_register_read_bit(register: str) -> bool:
@@ -87,7 +91,7 @@ async def perform_register_read_bit(register: str) -> bool:
     async def cb(fx: FXPLCClient) -> bool:
         return await fx.read_bit(register_def)
 
-    return await do_request(cb)
+    return await do_request(cb, f"READ_BIT {register}")
 
 
 async def perform_register_write_bit(register: str, value: bool) -> int:
@@ -97,7 +101,7 @@ async def perform_register_write_bit(register: str, value: bool) -> int:
         await fx.write_bit(register_def, value)
         return bool(value)
 
-    return await do_request(cb)
+    return await do_request(cb, f"WRITE_BIT {register}={value}")
 
 
 async def serial_task() -> None:
