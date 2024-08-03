@@ -129,6 +129,15 @@ async def variables_name_get(name: str) -> Any:
     }
 
 
+@app.get("/variable/{name}/value", response_class=PrettyJSONResponse)  # type: ignore
+async def variables_name_get_value(name: str) -> Any:
+    var_def = find_variable_def(name)
+
+    val = await perform_register_read(var_def.register, var_def.number_type)
+
+    return val
+
+
 @app.put("/variable/{name}", response_class=PrettyJSONResponse)  # type: ignore
 async def variables_name_put(name: str,
                              value: Optional[int | bool] = None,
