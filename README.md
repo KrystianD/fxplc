@@ -25,7 +25,7 @@ from fxplc.transports.TransportTCP import TransportTCP
 
 async def main():
     transport = TransportSerial("/dev/ttyUSB0")
-    # or, for TCP transport
+    # or, for TCP transport (serial-over-ethernet only)
     # transport = TransportTCP("192.168.1.100", 8888)
     # await transport.connect()
 
