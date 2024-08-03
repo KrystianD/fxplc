@@ -9,7 +9,7 @@ from fxplc.client.errors import ResponseMalformedError, NoResponseError, NotSupp
 from fxplc.client.number_type import NumberType, register_type_converters
 from fxplc.transports.ITransport import ITransport
 
-logger = logging.getLogger("fxplc")
+logger = logging.getLogger("fxplc.client")
 
 STX = b"\x02"  # Start of text
 ETX = b'\x03'  # End of text
